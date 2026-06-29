@@ -1,15 +1,16 @@
-from fastapi import FastAPI
-from sqlalchemy import create_engine, text
+from fastapi import Depends, FastAPI
+from sqlalchemy import text
+from sqlalchemy.orm import Session
 
-from app.core.config import settings
+from app.api import auth
+from app.core.database import get_db
 
 app = FastAPI(title="RAG Platform API")
 
-engine = create_engine(settings.database_url)
+app.include_router(auth.router)
 
 
 @app.get("/health")
-def health_check():
-    with engine.connect() as connection:
-        connection.execute(text("SELECT 1"))
+def health_check(db: Session = Depends(get_db)):
+    db.execute(text("SELECT 1"))
     return {"status": "ok", "database": "connected"}

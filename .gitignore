@@ -17,3 +17,6 @@ redis_data/
 Thumbs.db
 .vscode/*
 !.vscode/extensions.json
+
+# Personal Artifacts
+COMMANDS.md
