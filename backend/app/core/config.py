@@ -19,6 +19,8 @@ class Settings(BaseSettings):
     # Ollama / AI
     ollama_base_url: str = "http://localhost:11434"
     embedding_model: str = "nomic-embed-text"
+    llm_model: str = "llama3.1:8b"
+    top_k_chunks: int = 5
 
 
 settings = Settings()
