@@ -14,7 +14,7 @@ from app.models.message import Message
 from app.models.user import User
 from app.schemas.conversation import ChatRequest
 from app.services.embeddings import generate_embedding
-from app.services.rag import stream_rag_response
+from app.services.rag import build_search_query, stream_rag_response
 from app.services.retrieval import retrieve_relevant_chunks
 
 router = APIRouter(prefix="/chat", tags=["chat"])
@@ -61,7 +61,15 @@ def chat(
         db.commit()
         db.refresh(conversation)
 
-    # ── 3. Persist user message ───────────────────────────────────────────────
+    # ── 3. Load prior messages BEFORE adding the new one (this is the history) ─
+    history = (
+        db.query(Message)
+        .filter(Message.conversation_id == conversation.id)
+        .order_by(Message.created_at.asc())
+        .all()
+    )
+
+    # ── 4. Persist user message ───────────────────────────────────────────────
     user_message = Message(
         conversation_id=conversation.id,
         role="user",
@@ -70,10 +78,11 @@ def chat(
     db.add(user_message)
     db.commit()
 
-    # ── 4. Embed the question ─────────────────────────────────────────────────
-    query_embedding = generate_embedding(request.question)
+    # ── 5. Embed a search query that folds in recent context ─────────────────
+    search_query = build_search_query(request.question, history)
+    query_embedding = generate_embedding(search_query)
 
-    # ── 5. Retrieve relevant chunks ───────────────────────────────────────────
+    # ── 6. Retrieve relevant chunks ───────────────────────────────────────────
     chunks = retrieve_relevant_chunks(
         query_embedding=query_embedding,
         db=db,
@@ -88,18 +97,16 @@ def chat(
             detail="No relevant content found. Make sure at least one document is ready.",
         )
 
-    # Capture values needed inside the generator (after the request session closes)
     source_chunk_ids = [chunk.id for chunk in chunks]
     conversation_id = conversation.id
 
-    # ── 6. Build streaming generator ─────────────────────────────────────────
+    # ── 7. Build streaming generator ─────────────────────────────────────────
     def generate():
         collected_tokens: list[str] = []
 
-        for event in stream_rag_response(request.question, chunks):
+        for event in stream_rag_response(request.question, chunks, history):
             yield event
 
-            # Collect tokens so we can save the full response after streaming
             try:
                 if event.startswith("data: "):
                     data = json.loads(event[6:].strip())
@@ -108,7 +115,6 @@ def chat(
             except Exception:
                 pass
 
-        # ── Save assistant message once streaming is complete ─────────────────
         save_db = SessionLocal()
         try:
             assistant_message = Message(
@@ -140,7 +146,6 @@ def list_conversations(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    """Returns all conversations for the current user (used by frontend later)."""
     conversations = (
         db.query(Conversation)
         .filter(Conversation.owner_id == current_user.id)

@@ -9,6 +9,8 @@ class DocumentOut(BaseModel):
     filename: str
     status: str
     num_pages: int | None
+    page_width: float | None
+    page_height: float | None
     uploaded_at: datetime
 
     model_config = {"from_attributes": True}

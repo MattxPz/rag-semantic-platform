@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
 import { listDocuments } from "@/lib/api/documents";
 import { DocumentStatusBadge } from "./document-status-badge";
@@ -10,7 +11,6 @@ export function DocumentList() {
     queryKey: ["documents"],
     queryFn: listDocuments,
     refetchInterval: (query) => {
-      // Keep polling every 3s only while something is still processing.
       const hasActiveProcessing = query.state.data?.some(
         (doc) => doc.status === "pending" || doc.status === "processing"
       );
@@ -28,17 +28,32 @@ export function DocumentList() {
 
   return (
     <div className="space-y-2">
-      {documents.map((doc) => (
-        <div key={doc.id} className="flex items-center justify-between rounded-md border p-3">
-          <div>
-            <p className="text-sm font-medium">{doc.filename}</p>
-            <p className="text-xs text-muted-foreground">
-              {doc.num_pages ? `${doc.num_pages} pages` : "Processing..."}
-            </p>
+      {documents.map((doc) => {
+        const isClickable = doc.status === "ready";
+        const row = (
+          <div
+            className={`flex items-center justify-between rounded-md border p-3 ${
+              isClickable ? "transition-colors hover:bg-muted/50" : ""
+            }`}
+          >
+            <div>
+              <p className="text-sm font-medium">{doc.filename}</p>
+              <p className="text-xs text-muted-foreground">
+                {doc.num_pages ? `${doc.num_pages} pages` : "Processing..."}
+              </p>
+            </div>
+            <DocumentStatusBadge status={doc.status} />
           </div>
-          <DocumentStatusBadge status={doc.status} />
-        </div>
-      ))}
+        );
+
+        return isClickable ? (
+          <Link key={doc.id} href={`/dashboard/documents/${doc.id}`}>
+            {row}
+          </Link>
+        ) : (
+          <div key={doc.id}>{row}</div>
+        );
+      })}
     </div>
   );
 }

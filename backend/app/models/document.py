@@ -1,7 +1,7 @@
 import uuid
 from datetime import datetime
 
-from sqlalchemy import DateTime, ForeignKey, Integer, String
+from sqlalchemy import DateTime, Float, ForeignKey, Integer, String
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.sql import func
@@ -18,6 +18,10 @@ class Document(Base):
     file_path: Mapped[str] = mapped_column(String, nullable=False)
     status: Mapped[str] = mapped_column(String, default="pending")
     num_pages: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    # Page size in PDF points (assumes a uniform page size across the document)
+    # — used by the frontend to scale highlight rectangles correctly.
+    page_width: Mapped[float | None] = mapped_column(Float, nullable=True)
+    page_height: Mapped[float | None] = mapped_column(Float, nullable=True)
     uploaded_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
     owner = relationship("User", back_populates="documents")
