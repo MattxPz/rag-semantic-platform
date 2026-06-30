@@ -20,3 +20,8 @@ Thumbs.db
 
 # Personal Artifacts
 COMMANDS.md
+private/
+
+# Backend Storage
+backend/storage/*
+!backend/storage/.gitkeep

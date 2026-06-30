@@ -9,3 +9,6 @@ pwdlib[argon2]
 python-multipart
 email-validator
 pgvector
+pymupdf
+langchain-text-splitters
+ollama
