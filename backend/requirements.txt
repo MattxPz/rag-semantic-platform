@@ -12,3 +12,4 @@ pgvector
 pymupdf
 langchain-text-splitters
 ollama
+rq

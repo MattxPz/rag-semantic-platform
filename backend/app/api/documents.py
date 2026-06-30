@@ -1,7 +1,7 @@
 import uuid
 from pathlib import Path
 
-from fastapi import APIRouter, BackgroundTasks, Depends, File, HTTPException, UploadFile, status
+from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
 from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 
@@ -11,6 +11,7 @@ from app.core.database import get_db
 from app.models.document import Document
 from app.models.user import User
 from app.schemas.document import DocumentOut
+from app.core.queue import task_queue
 from app.services.ingestion import process_document_task
 
 router = APIRouter(prefix="/documents", tags=["documents"])
@@ -20,7 +21,6 @@ STORAGE = Path(settings.storage_path)
 
 @router.post("/", response_model=DocumentOut, status_code=status.HTTP_201_CREATED)
 async def upload_document(
-    background_tasks: BackgroundTasks,
     file: UploadFile = File(...),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
@@ -52,8 +52,14 @@ async def upload_document(
     db.commit()
     db.refresh(doc)
 
-    # Kick off background processing (runs after response is sent)
-    background_tasks.add_task(process_document_task, doc_id, str(file_path))
+    # Enqueue background processing on the RQ worker.
+    # job_timeout is generous because embedding a large PDF on CPU is slow.
+    task_queue.enqueue(
+        process_document_task,
+        doc_id,
+        str(file_path),
+        job_timeout="30m",
+    )
 
     return doc
 
