@@ -13,3 +13,5 @@ pymupdf
 langchain-text-splitters
 ollama
 rq
+pytest
+pytest-cov
