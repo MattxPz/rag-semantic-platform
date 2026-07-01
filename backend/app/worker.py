@@ -7,6 +7,7 @@ On Windows, RQ's default Worker can't be used because it relies on os.fork(),
 which doesn't exist there — so we fall back to SimpleWorker (runs jobs in the
 same process, no fork). On Linux/Docker the regular Worker is used.
 """
+
 import os
 
 from rq import SimpleWorker, Worker

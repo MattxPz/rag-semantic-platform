@@ -1,5 +1,4 @@
 import json
-import uuid
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.responses import StreamingResponse
@@ -29,10 +28,14 @@ def chat(
     # ── 1. Validate requested document_ids belong to this user ───────────────
     if request.document_ids:
         for doc_id in request.document_ids:
-            doc = db.query(Document).filter(
-                Document.id == doc_id,
-                Document.owner_id == current_user.id,
-            ).first()
+            doc = (
+                db.query(Document)
+                .filter(
+                    Document.id == doc_id,
+                    Document.owner_id == current_user.id,
+                )
+                .first()
+            )
             if not doc:
                 raise HTTPException(
                     status_code=status.HTTP_404_NOT_FOUND,
@@ -46,10 +49,14 @@ def chat(
 
     # ── 2. Resolve or create conversation ────────────────────────────────────
     if request.conversation_id:
-        conversation = db.query(Conversation).filter(
-            Conversation.id == request.conversation_id,
-            Conversation.owner_id == current_user.id,
-        ).first()
+        conversation = (
+            db.query(Conversation)
+            .filter(
+                Conversation.id == request.conversation_id,
+                Conversation.owner_id == current_user.id,
+            )
+            .first()
+        )
         if not conversation:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
@@ -152,7 +159,4 @@ def list_conversations(
         .order_by(Conversation.created_at.desc())
         .all()
     )
-    return [
-        {"id": str(c.id), "created_at": c.created_at.isoformat()}
-        for c in conversations
-    ]
+    return [{"id": str(c.id), "created_at": c.created_at.isoformat()} for c in conversations]

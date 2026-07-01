@@ -66,7 +66,7 @@ def _build_chat_messages(question: str, history: list[Message], context: str) ->
     """Builds the full message list sent to Ollama: system + recent turns + current question."""
     messages = [{"role": "system", "content": _SYSTEM_PROMPT.format(context=context)}]
 
-    recent_history = history[-(HISTORY_TURNS * 2):]
+    recent_history = history[-(HISTORY_TURNS * 2) :]
     for message in recent_history:
         messages.append({"role": message.role, "content": message.content})
 
@@ -78,7 +78,7 @@ def stream_rag_response(
     question: str,
     chunks: list[Chunk],
     history: list[Message],
-) -> Generator[str, None, None]:
+) -> Generator[str]:
     """
     Yields Server-Sent Events (SSE) strings in this order:
       1. One 'sources' event with metadata of the retrieved chunks.

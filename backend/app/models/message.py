@@ -13,7 +13,9 @@ class Message(Base):
     __tablename__ = "messages"
 
     id: Mapped[uuid.UUID] = mapped_column(GUID, primary_key=True, default=uuid.uuid4)
-    conversation_id: Mapped[uuid.UUID] = mapped_column(GUID, ForeignKey("conversations.id"), nullable=False)
+    conversation_id: Mapped[uuid.UUID] = mapped_column(
+        GUID, ForeignKey("conversations.id"), nullable=False
+    )
     role: Mapped[str] = mapped_column(String, nullable=False)
     content: Mapped[str] = mapped_column(String, nullable=False)
     source_chunk_ids: Mapped[list[uuid.UUID] | None] = mapped_column(GUIDArray, nullable=True)

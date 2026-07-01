@@ -23,10 +23,12 @@ def retrieve_relevant_chunks(
     else:
         effective_ids = [
             row.id
-            for row in db.query(Document.id).filter(
+            for row in db.query(Document.id)
+            .filter(
                 Document.owner_id == owner_id,
                 Document.status == "ready",
-            ).all()
+            )
+            .all()
         ]
 
     if not effective_ids:

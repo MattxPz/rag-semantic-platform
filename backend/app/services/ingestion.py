@@ -84,11 +84,13 @@ def chunk_pages(pages: list[dict]) -> list[dict]:
             start = split_doc.metadata["start_index"]
             end = start + len(split_doc.page_content)
             bboxes = _bboxes_in_range(offset_blocks, start, end)
-            chunks.append({
-                "content": split_doc.page_content,
-                "page_number": page["page_number"],
-                "bbox": bboxes or None,
-            })
+            chunks.append(
+                {
+                    "content": split_doc.page_content,
+                    "page_number": page["page_number"],
+                    "bbox": bboxes or None,
+                }
+            )
     return chunks
 
 

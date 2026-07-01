@@ -8,10 +8,10 @@ from sqlalchemy.orm import Session
 from app.api.deps import get_current_user
 from app.core.config import settings
 from app.core.database import get_db
+from app.core.queue import task_queue
 from app.models.document import Document
 from app.models.user import User
 from app.schemas.document import DocumentOut
-from app.core.queue import task_queue
 from app.services.ingestion import process_document_task
 
 router = APIRouter(prefix="/documents", tags=["documents"])
@@ -78,10 +78,14 @@ def get_document(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    doc = db.query(Document).filter(
-        Document.id == doc_id,
-        Document.owner_id == current_user.id,
-    ).first()
+    doc = (
+        db.query(Document)
+        .filter(
+            Document.id == doc_id,
+            Document.owner_id == current_user.id,
+        )
+        .first()
+    )
     if not doc:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Document not found.")
     return doc
@@ -94,10 +98,14 @@ def serve_document_file(
     current_user: User = Depends(get_current_user),
 ):
     """Returns the raw PDF file — used by the PDF viewer in Phase 5."""
-    doc = db.query(Document).filter(
-        Document.id == doc_id,
-        Document.owner_id == current_user.id,
-    ).first()
+    doc = (
+        db.query(Document)
+        .filter(
+            Document.id == doc_id,
+            Document.owner_id == current_user.id,
+        )
+        .first()
+    )
     if not doc:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Document not found.")
 

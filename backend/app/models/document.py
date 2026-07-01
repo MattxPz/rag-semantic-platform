@@ -20,7 +20,9 @@ class Document(Base):
     num_pages: Mapped[int | None] = mapped_column(Integer, nullable=True)
     page_width: Mapped[float | None] = mapped_column(Float, nullable=True)
     page_height: Mapped[float | None] = mapped_column(Float, nullable=True)
-    uploaded_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    uploaded_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now()
+    )
 
     owner = relationship("User", back_populates="documents")
     chunks = relationship("Chunk", back_populates="document", cascade="all, delete-orphan")

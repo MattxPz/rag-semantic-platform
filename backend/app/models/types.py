@@ -3,6 +3,7 @@ Custom SQLAlchemy types that work on both PostgreSQL (production) and
 SQLite (test suite). Postgres uses its native UUID/JSONB/ARRAY/Vector types;
 SQLite falls back to portable equivalents with explicit value conversion.
 """
+
 import uuid
 
 from pgvector.sqlalchemy import Vector

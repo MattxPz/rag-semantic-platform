@@ -15,3 +15,5 @@ ollama
 rq
 pytest
 pytest-cov
+pre-commit
+ruff

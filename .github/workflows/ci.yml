@@ -1,0 +1,82 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  # ── Backend linting with Ruff ────────────────────────────────────────────
+  backend-lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.13"
+      - name: Install Ruff
+        run: pip install ruff
+      - name: Lint
+        run: ruff check .
+        working-directory: backend
+      - name: Check formatting
+        run: ruff format --check .
+        working-directory: backend
+
+  # ── Backend tests with pytest ────────────────────────────────────────────
+  backend-tests:
+    runs-on: ubuntu-latest
+    services:
+      # Postgres + pgvector, the same combo used in production.
+      postgres:
+        image: pgvector/pgvector:pg18-trixie
+        env:
+          POSTGRES_DB: ragdb
+          POSTGRES_USER: raguser
+          POSTGRES_PASSWORD: ragpass
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+    env:
+      # These satisfy Settings() validation. Tests use in-memory SQLite,
+      # so the Postgres service is available but not strictly required by
+      # the current suite — it's wired up for future integration tests.
+      DATABASE_URL: postgresql+psycopg://raguser:ragpass@localhost:5432/ragdb
+      REDIS_URL: redis://localhost:6379/0
+      SECRET_KEY: test-secret-key-not-for-production
+      JWT_ALGORITHM: HS256
+      ACCESS_TOKEN_EXPIRE_MINUTES: "60"
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.13"
+          cache: "pip"
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+        working-directory: backend
+      - name: Run tests
+        run: pytest --cov=app --cov-report=term-missing
+        working-directory: backend
+
+  # ── Frontend tests with Vitest ───────────────────────────────────────────
+  frontend-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: "22"
+      - name: Install pnpm
+        run: corepack enable pnpm
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+        working-directory: frontend
+      - name: Run tests
+        run: pnpm test:run
+        working-directory: frontend

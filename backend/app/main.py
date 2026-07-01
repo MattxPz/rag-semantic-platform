@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 
-from app.api import auth, documents, chat
+from app.api import auth, chat, documents
 from app.core.database import get_db
 
 app = FastAPI(title="RAG Platform API")
