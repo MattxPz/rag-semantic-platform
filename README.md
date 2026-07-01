@@ -1,5 +1,5 @@
 # RAG Semantic Search Platform
-![CI](https://github.com/MattxPz/rag-platform/actions/workflows/ci.yml/badge.svg)
+![CI](https://github.com/MattxPz/rag-semantic-platform/actions/workflows/ci.yml/badge.svg)
 
 A fully local, self-hosted **Retrieval-Augmented Generation (RAG)** platform for semantic search and summarization of technical documents. Upload PDFs, ask questions in natural language, and get answers grounded **strictly** in your documents — with the exact source passages highlighted in an integrated PDF viewer.
 
